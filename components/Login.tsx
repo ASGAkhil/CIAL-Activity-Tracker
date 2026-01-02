@@ -180,7 +180,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
         
         <p className="mt-8 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest opacity-60">
-          © 2024 CIAL CLOUD INFRASTRUCTURE • PRIVACY SECURED
+          © 2026 CloudAiLabs • PRIVACY SECURED
         </p>
       </div>
     </div>

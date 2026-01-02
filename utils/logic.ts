@@ -1,5 +1,6 @@
 
 import { Activity, EligibilityResult, Statistics } from '../types';
+import { CONFIG } from '../services/config';
 
 export const calculateEligibility = (activities: Activity[], joiningDate: string): EligibilityResult => {
   const sorted = [...activities].sort((a, b) => a.date.localeCompare(b.date));
@@ -20,10 +21,14 @@ export const calculateEligibility = (activities: Activity[], joiningDate: string
     }
   }
 
+  const minDays = CONFIG.PROGRAM_SETTINGS.MIN_DAYS_FOR_CERTIFICATE;
+  const minHours = CONFIG.PROGRAM_SETTINGS.MIN_HOURS_PER_DAY;
+  const maxAllowedGap = CONFIG.PROGRAM_SETTINGS.MAX_ALLOWED_GAP_DAYS;
+
   const reasons: string[] = [];
-  if (activeDays < 60) reasons.push(`Requires 60 active days (Current: ${activeDays})`);
-  if (averageHours < 2.5) reasons.push(`Average hours must be ≥ 2.5 (Current: ${averageHours.toFixed(1)})`);
-  if (maxGap > 3) reasons.push(`Maximum gap exceeded 3 consecutive days (Worst gap: ${maxGap} days)`);
+  if (activeDays < minDays) reasons.push(`Requires ${minDays} active days (Current: ${activeDays})`);
+  if (averageHours < minHours) reasons.push(`Average hours must be ≥ ${minHours} (Current: ${averageHours.toFixed(1)})`);
+  if (maxGap > maxAllowedGap) reasons.push(`Maximum gap exceeded ${maxAllowedGap} consecutive days (Worst gap: ${maxGap} days)`);
 
   return {
     isEligible: reasons.length === 0 && activeDays > 0,
@@ -44,9 +49,8 @@ export const calculateStats = (activities: Activity[]): Statistics => {
   const totalHours = activities.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
   const averageHours = activeDays > 0 ? totalHours / activeDays : 0;
 
-  // Robust Streak Logic
   let streak = 0;
-  const dateStrs = Array.from(uniqueDates).sort().reverse(); // Newest dates first
+  const dateStrs = Array.from(uniqueDates).sort().reverse(); 
   
   if (dateStrs.length > 0) {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -54,7 +58,6 @@ export const calculateStats = (activities: Activity[]): Statistics => {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-    // If latest log isn't today OR yesterday, streak is broken
     if (dateStrs[0] !== todayStr && dateStrs[0] !== yesterdayStr) {
       streak = 0;
     } else {

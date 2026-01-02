@@ -4,36 +4,31 @@ import { User, Activity, UserRole } from '../types';
 import { MOCK_INTERNS, MOCK_ADMIN, INITIAL_ACTIVITIES } from './mockData';
 import { CONFIG } from './config';
 
-// Initialize AI
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 class InternApiService {
+  private CACHE_INTERNS = 'cial_vault_interns';
+  private CACHE_ACTIVITIES = 'cial_vault_activities';
+
   private async fetchAllData(): Promise<{ interns: User[], activities: Activity[] }> {
     const sheetUrl = (CONFIG.GOOGLE_SHEET_API_URL || "").trim();
     const isMockMode = !sheetUrl || sheetUrl.includes("PASTE_YOUR_URL_HERE");
 
+    // Pre-load from cache for safety
+    const cachedInterns = localStorage.getItem(this.CACHE_INTERNS);
+    const cachedActivities = localStorage.getItem(this.CACHE_ACTIVITIES);
+    
+    let interns = cachedInterns ? JSON.parse(cachedInterns) : MOCK_INTERNS;
+    let activities = cachedActivities ? JSON.parse(cachedActivities) : INITIAL_ACTIVITIES;
+
     if (!isMockMode) {
       try {
-        console.log("📡 Syncing with Google Cloud...");
-        
-        // Use no-cache to ensure we get fresh data from the table
         const response = await fetch(sheetUrl, { cache: 'no-store' });
-        
-        if (!response.ok) {
-          throw new Error(`Cloud connection failed: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Cloud Sync failed`);
         
         const json = await response.json();
-        
-        if (json.error) {
-          console.error("❌ Apps Script Server Error:", json.error);
-          throw new Error(`The spreadsheet script encountered an error: ${json.error}`);
-        }
+        if (json.error) throw new Error(json.error);
 
-        let rawInterns = json.interns || [];
-        let rawActivities = json.activities || [];
-
-        // Helper to find a value by loosely matching keys (useful for Tables)
         const getValueByFuzzyKey = (obj: any, target: string) => {
           const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
           const targetNorm = normalize(target);
@@ -41,46 +36,46 @@ class InternApiService {
           return key ? obj[key] : null;
         };
 
-        const remoteInterns = rawInterns
-          .map((item: any, index: number) => {
-            // Match against common header names used in the sheet screenshot
+        if (json.interns && json.interns.length > 0) {
+          const remoteInterns = json.interns.map((item: any, index: number) => {
             const name = getValueByFuzzyKey(item, "Student Name") || getValueByFuzzyKey(item, "Full Name") || item["name"];
             const id = getValueByFuzzyKey(item, "Intern ID") || getValueByFuzzyKey(item, "ID");
-            const status = getValueByFuzzyKey(item, "Status") || "Active";
-
             return {
               id: `sheet-${index}-${id}`,
               name: name ? String(name).trim() : "Unknown",
               internId: id ? String(id).trim().toUpperCase() : "",
               email: id ? `${String(id).toLowerCase()}@cial.org` : "unknown@cial.org",
               role: UserRole.INTERN,
-              status: String(status).trim(),
               joiningDate: '2024-05-01'
             };
-          })
-          .filter((i: any) => 
-            i.name !== "Unknown" && 
-            i.internId !== "" && 
-            i.status.toLowerCase().includes("active")
-          );
+          }).filter((i: any) => i.internId !== "");
 
-        const remoteActivities = rawActivities.map((a: any) => ({
-          ...a,
-          hours: Number(a.hours || 0),
-          qualityScore: Number(a.qualityScore || 5)
-        }));
+          if (remoteInterns.length > 0) {
+            interns = remoteInterns;
+            localStorage.setItem(this.CACHE_INTERNS, JSON.stringify(interns));
+          }
+        }
 
-        console.log(`✅ Synced ${remoteInterns.length} interns and ${remoteActivities.length} logs.`);
-        return { interns: remoteInterns, activities: remoteActivities };
+        if (json.activities && json.activities.length >= 0) {
+          const remoteActivities = json.activities.map((a: any) => ({
+            ...a,
+            hours: Number(a.hours || 0),
+            qualityScore: Number(a.qualityScore || 5)
+          }));
+          
+          // Only overwrite if we actually got valid results back to prevent "vanishing"
+          if (json.activities.length > 0) {
+            activities = remoteActivities;
+            localStorage.setItem(this.CACHE_ACTIVITIES, JSON.stringify(activities));
+          }
+        }
 
       } catch (error: any) {
-        console.error("❌ Sync Logic Error:", error.message);
-        // Fallback to mock data so the app remains usable even if sync is broken
-        return { interns: MOCK_INTERNS, activities: INITIAL_ACTIVITIES };
+        console.warn("⚠️ Cloud connection failed. Using local vault data.", error.message);
       }
     }
 
-    return { interns: MOCK_INTERNS, activities: INITIAL_ACTIVITIES };
+    return { interns, activities };
   }
 
   async getInternDirectory(): Promise<{ name: string; id: string }[]> {
@@ -107,8 +102,7 @@ class InternApiService {
 
   async submitActivity(activity: Omit<Activity, 'id' | 'timestamp' | 'qualityScore'>): Promise<Activity> {
     const currentActivities = await this.getActivities(activity.internId);
-    const alreadySubmitted = currentActivities.find(a => a.date === activity.date);
-    if (alreadySubmitted) throw new Error("A record for today already exists.");
+    if (currentActivities.find(a => a.date === activity.date)) throw new Error("A record for today already exists.");
 
     let qualityScore = 5;
     try {
@@ -124,15 +118,9 @@ class InternApiService {
                 }
             }
         });
-        // Accessing response.text property directly as per SDK guidelines
         const jsonStr = response.text?.trim();
-        if (jsonStr) {
-          const parsed = JSON.parse(jsonStr);
-          qualityScore = parsed.score || 5;
-        }
-    } catch (e) {
-      console.warn("AI scoring unavailable.");
-    }
+        if (jsonStr) qualityScore = JSON.parse(jsonStr).score || 5;
+    } catch (e) {}
 
     const newActivity: Activity = {
       ...activity,
@@ -141,18 +129,20 @@ class InternApiService {
       qualityScore
     };
 
+    // Save locally immediately to prevent loss
+    const stored = localStorage.getItem(this.CACHE_ACTIVITIES);
+    const list = stored ? JSON.parse(stored) : [];
+    list.push(newActivity);
+    localStorage.setItem(this.CACHE_ACTIVITIES, JSON.stringify(list));
+
     const sheetUrl = (CONFIG.GOOGLE_SHEET_API_URL || "").trim();
     if (sheetUrl && !sheetUrl.includes("PASTE_YOUR_URL_HERE")) {
-      try {
-        await fetch(sheetUrl, {
-          method: 'POST',
-          mode: 'no-cors', 
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(newActivity)
-        });
-      } catch (err) {
-        console.error("❌ Cloud Push Error:", err);
-      }
+      fetch(sheetUrl, {
+        method: 'POST',
+        mode: 'no-cors', 
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(newActivity)
+      }).catch(err => console.error("Cloud Push Failed:", err));
     }
 
     return newActivity;
