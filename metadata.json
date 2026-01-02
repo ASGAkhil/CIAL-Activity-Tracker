@@ -1,0 +1,5 @@
+{
+  "name": "Internship Compliance & Eligibility Tracker",
+  "description": "A robust, rule-based system for tracking intern daily activities, enforcing 3-hour minimums, and automatically calculating certification eligibility based on consistency and work quality.",
+  "requestFramePermissions": []
+}
