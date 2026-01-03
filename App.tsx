@@ -22,6 +22,7 @@ const App: React.FC = () => {
       if (loginDate === today) {
         setUser(JSON.parse(storedUser));
       } else {
+        // Only clear session data, not activity data
         localStorage.removeItem('intern_session_user');
         localStorage.removeItem('intern_session_timestamp');
       }
@@ -37,6 +38,8 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setUser(null);
+    // CRITICAL FIX: Only remove session keys. Do NOT call localStorage.clear()
+    // This ensures 'cial_activities_...' history remains on the device.
     localStorage.removeItem('intern_session_user');
     localStorage.removeItem('intern_session_timestamp');
   };

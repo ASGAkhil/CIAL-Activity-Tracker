@@ -49,7 +49,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (query.length > 0) {
       const filtered = directory.filter(item => 
         item.name.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 8);
+      ).slice(0, 8); // Professional limit of 8 suggestions
       setFilteredNames(filtered);
       setIsDropdownOpen(true);
     } else {
@@ -60,6 +60,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const selectName = (item: { name: string; id: string }) => {
     setNameQuery(item.name);
+    // CRITICAL: We no longer set the InternID. 
+    // The user must enter it manually for verification.
     setInternId(''); 
     setIsDropdownOpen(false);
   };
@@ -85,6 +87,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12 relative overflow-hidden">
+      {/* Subtle Professional Background */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-100/30 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-100/30 rounded-full blur-[120px]"></div>
