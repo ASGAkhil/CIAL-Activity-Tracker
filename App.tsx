@@ -5,18 +5,6 @@ import Login from './components/Login';
 import Layout from './components/Layout';
 import InternDashboard from './components/InternDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import { Amplify } from 'aws-amplify';
-
-// In a real Gen 2 environment, this file is generated during deployment
-// but we wrap the config call to prevent errors during build
-try {
-  // @ts-ignore
-  import('./amplify_outputs.json').then((outputs) => {
-    Amplify.configure(outputs.default);
-  }).catch(() => {
-    console.log("Amplify outputs not found - proceeding with standalone mode.");
-  });
-} catch (e) {}
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
