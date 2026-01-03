@@ -9,8 +9,8 @@ export const CONFIG = {
   
   // Program Rules
   PROGRAM_SETTINGS: {
-    MIN_DAYS_FOR_CERTIFICATE: 90, // Updated to 90 days
-    MIN_HOURS_PER_DAY: 3.0, // Updated to 3.0 hours
+    MIN_DAYS_FOR_CERTIFICATE: 90,
+    MIN_HOURS_PER_DAY: 3.0, // Standard daily target
     MAX_ALLOWED_GAP_DAYS: 3,
     TOTAL_INTERNSHIP_MONTHS: 3
   }

@@ -5,6 +5,18 @@ import Login from './components/Login';
 import Layout from './components/Layout';
 import InternDashboard from './components/InternDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import { Amplify } from 'aws-amplify';
+
+// In a real Gen 2 environment, this file is generated during deployment
+// but we wrap the config call to prevent errors during build
+try {
+  // @ts-ignore
+  import('./amplify_outputs.json').then((outputs) => {
+    Amplify.configure(outputs.default);
+  }).catch(() => {
+    console.log("Amplify outputs not found - proceeding with standalone mode.");
+  });
+} catch (e) {}
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -22,7 +34,6 @@ const App: React.FC = () => {
       if (loginDate === today) {
         setUser(JSON.parse(storedUser));
       } else {
-        // Only clear session data, not activity data
         localStorage.removeItem('intern_session_user');
         localStorage.removeItem('intern_session_timestamp');
       }
@@ -38,8 +49,6 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setUser(null);
-    // CRITICAL FIX: Only remove session keys. Do NOT call localStorage.clear()
-    // This ensures 'cial_activities_...' history remains on the device.
     localStorage.removeItem('intern_session_user');
     localStorage.removeItem('intern_session_timestamp');
   };
