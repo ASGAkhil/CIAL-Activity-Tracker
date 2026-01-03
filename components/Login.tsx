@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import { api } from '../services/apiService';
@@ -49,7 +48,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (query.length > 0) {
       const filtered = directory.filter(item => 
         item.name.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 8); // Professional limit of 8 suggestions
+      ).slice(0, 8);
       setFilteredNames(filtered);
       setIsDropdownOpen(true);
     } else {
@@ -60,8 +59,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const selectName = (item: { name: string; id: string }) => {
     setNameQuery(item.name);
-    // CRITICAL: We no longer set the InternID. 
-    // The user must enter it manually for verification.
     setInternId(''); 
     setIsDropdownOpen(false);
   };
@@ -87,33 +84,35 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12 relative overflow-hidden">
-      {/* Subtle Professional Background */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-100/30 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-100/30 rounded-full blur-[120px]"></div>
+      {/* Dynamic Professional Background */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-30">
+        <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-cyan-100/40 rounded-full blur-[100px]"></div>
       </div>
 
-      <div className="max-w-md w-full relative z-10">
-        <div className="flex flex-col items-center mb-10 text-center">
-          <BrandLogo size="lg" className="mb-8" />
-          <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">
+      <div className="max-w-md w-full relative z-10 flex flex-col items-center">
+        {/* Centered Branding Section */}
+        <div className="flex flex-col items-center mb-8 text-center w-full">
+          <BrandLogo size="lg" className="mb-6" />
+          <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">
             Activity Tracker
           </h2>
-          <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.3em] mt-3">
+          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.4em] mt-3">
             Official Intern Portal
           </p>
         </div>
 
-        <div className="bg-white border border-slate-200/60 rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] p-10">
+        {/* Login Card */}
+        <div className="w-full bg-white border border-slate-100 rounded-[40px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] p-8 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative" ref={dropdownRef}>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Registered Name</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 ml-1">Registered Name</label>
               <div className="relative">
                 <input 
                   type="text" 
                   required
                   autoComplete="off"
-                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all text-slate-900 font-bold placeholder:text-slate-300 placeholder:font-normal"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all text-slate-900 font-bold placeholder:text-slate-200 placeholder:font-normal"
                   placeholder="Start typing your name..."
                   value={nameQuery}
                   onChange={handleNameChange}
@@ -139,12 +138,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Verify Intern ID</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 ml-1">Verify Intern ID</label>
               <input 
                 type="text" 
                 required
-                className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all text-slate-900 font-mono font-black uppercase tracking-widest placeholder:text-slate-300 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal"
-                placeholder="INT-XXXX"
+                className="w-full px-5 py-4 rounded-2xl border border-slate-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all text-slate-900 font-mono font-black uppercase tracking-widest placeholder:text-slate-200 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal"
+                placeholder="TNT_YYYY"
                 value={internId}
                 onChange={(e) => setInternId(e.target.value.toUpperCase())}
               />
@@ -162,26 +161,32 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <button 
               type="submit" 
               disabled={loading || syncing || !nameQuery || !internId}
-              className={`w-full py-4 px-8 rounded-2xl font-black text-xs text-white transition-all uppercase tracking-widest ${loading || syncing || !nameQuery || !internId ? 'bg-slate-200 cursor-not-allowed text-slate-400' : 'bg-slate-900 hover:bg-blue-600 active:scale-[0.98] shadow-lg shadow-slate-200'}`}
+              className={`w-full py-4 px-8 rounded-2xl font-black text-xs text-white transition-all uppercase tracking-widest ${loading || syncing || !nameQuery || !internId ? 'bg-slate-100 cursor-not-allowed text-slate-300' : 'bg-[#e2e8f0] hover:bg-blue-600 text-slate-500 hover:text-white active:scale-[0.98] shadow-sm'}`}
             >
-              {loading ? 'Verifying...' : 'Validate & Enter'}
+              {loading ? 'Validating...' : 'Validate & Enter'}
             </button>
           </form>
 
-          <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-center">
+          <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-center">
             <button 
               type="button" 
               onClick={() => { setNameQuery('Program Director'); setInternId('ADM-001'); }}
-              className="text-[9px] font-black text-slate-300 hover:text-blue-500 transition-colors uppercase tracking-[0.25em]"
+              className="text-[10px] font-extrabold text-slate-300 hover:text-blue-500 transition-colors uppercase tracking-[0.2em]"
             >
               Administrative Access
             </button>
           </div>
         </div>
         
-        <p className="mt-8 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest opacity-60">
-          © 2026 CloudAiLabs • PRIVACY SECURED
-        </p>
+        {/* Support Footer text */}
+        <div className="mt-8 text-center space-y-2">
+          <p className="text-blue-500 font-bold text-sm tracking-wide">
+            Contact- akhil@cloudailabs.in
+          </p>
+          <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest opacity-60">
+            © 2026 CloudAiLabs • PRIVACY SECURED
+          </p>
+        </div>
       </div>
     </div>
   );

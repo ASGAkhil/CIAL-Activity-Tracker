@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { User, UserRole } from '../types';
 import { BrandLogo } from './Logo';
