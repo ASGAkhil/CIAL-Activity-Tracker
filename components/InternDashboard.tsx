@@ -91,6 +91,7 @@ const InternDashboard: React.FC<InternDashboardProps> = ({ user }) => {
   );
 
   const minDaysGoal = CONFIG.PROGRAM_SETTINGS.MIN_DAYS_FOR_CERTIFICATE;
+  const minHoursGoal = CONFIG.PROGRAM_SETTINGS.MIN_HOURS_PER_DAY;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -123,7 +124,7 @@ const InternDashboard: React.FC<InternDashboardProps> = ({ user }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Active Days" value={stats.totalActiveDays} icon="📅" subText={`Goal: ${minDaysGoal} Days`} />
-        <StatCard title="Daily Avg" value={`${stats.averageHours.toFixed(1)}h`} icon="⏰" subText="Target: ≥ 2.5h" />
+        <StatCard title="Daily Avg" value={`${stats.averageHours.toFixed(1)}h`} icon="⏰" subText={`Target: ≥ ${minHoursGoal}h`} />
         <StatCard title="Streak" value={`${stats.currentStreak}d`} icon="🔥" subText="Consecutive" />
         <StatCard 
             title="Eligibility" 
@@ -188,11 +189,11 @@ const InternDashboard: React.FC<InternDashboardProps> = ({ user }) => {
             <h3 className="font-black text-slate-900 mb-12 flex items-center gap-4 text-xs uppercase tracking-[0.3em]">Compliance Check</h3>
             <div className="space-y-12">
                <ProgressBar label="Required Active Days" current={stats.totalActiveDays} target={minDaysGoal} />
-               <ProgressBar label="Mean Daily Effort" current={stats.averageHours} target={2.5} unit="h" />
+               <ProgressBar label="Mean Daily Effort" current={stats.averageHours} target={minHoursGoal} unit="h" />
                <div className="pt-12 border-t border-slate-100">
                   <ul className="space-y-6">
                     <CheckItem label={`${minDaysGoal} Active Days`} checked={stats.totalActiveDays >= minDaysGoal} />
-                    <CheckItem label="High Intensity (Avg ≥ 2.5h)" checked={stats.averageHours >= 2.5} />
+                    <CheckItem label={`High Intensity (Avg ≥ ${minHoursGoal}h)`} checked={stats.averageHours >= minHoursGoal} />
                     <CheckItem label="Consistent (Gap ≤ 3 Days)" checked={eligibility.maxGapDays <= 3 && activities.length > 0} />
                   </ul>
                </div>
