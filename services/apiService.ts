@@ -1,9 +1,10 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { User, Activity, UserRole } from '../types';
 import { MOCK_INTERNS, MOCK_ADMIN, INITIAL_ACTIVITIES } from './mockData';
 import { CONFIG } from './config';
 
+// Always use process.env.API_KEY as per core instructions.
+// The vite.config.ts will handle providing this value from your .env file locally.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 class InternApiService {
@@ -14,7 +15,6 @@ class InternApiService {
     const sheetUrl = (CONFIG.GOOGLE_SHEET_API_URL || "").trim();
     const isMockMode = !sheetUrl || sheetUrl.includes("PASTE_YOUR_URL_HERE");
 
-    // Pre-load from cache for safety
     const cachedInterns = localStorage.getItem(this.CACHE_INTERNS);
     const cachedActivities = localStorage.getItem(this.CACHE_ACTIVITIES);
     
@@ -63,7 +63,6 @@ class InternApiService {
             qualityScore: Number(a.qualityScore || 5)
           }));
           
-          // Only overwrite if we actually got valid results back to prevent "vanishing"
           if (json.activities.length > 0) {
             activities = remoteActivities;
             localStorage.setItem(this.CACHE_ACTIVITIES, JSON.stringify(activities));
@@ -129,7 +128,6 @@ class InternApiService {
       qualityScore
     };
 
-    // Save locally immediately to prevent loss
     const stored = localStorage.getItem(this.CACHE_ACTIVITIES);
     const list = stored ? JSON.parse(stored) : [];
     list.push(newActivity);
