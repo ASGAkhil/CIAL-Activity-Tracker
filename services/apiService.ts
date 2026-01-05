@@ -4,7 +4,7 @@ import { User, Activity, UserRole } from '../types';
 import { MOCK_INTERNS, MOCK_ADMIN, INITIAL_ACTIVITIES } from './mockData';
 import { CONFIG } from './config';
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 class InternApiService {
   private CACHE_INTERNS = 'cial_vault_interns';
